@@ -1,3 +1,10 @@
+- Pedro Henrique dos Santos Cardoso - RM: 563268
+- Gabriel Gibin Leoncio – RM: 565462
+- Rafael do Nascimento Silva – RM: 566263
+- Rai Augusto Ribeiro – RM: 562870
+- Guilherme Morais de Assis - RM: 564198
+- Lucas Werpp Franco - RM: 556044
+
 #  GreenSense
 
 ## Monitoramento da vegetação ao longo das rodovias
@@ -99,10 +106,3 @@ Sprint2-APPLICATION-DEVELOPMENT/
 ├── js/
 │   └── main.js
 ├── README.md
-----------------------------------------------------
-- Pedro Henrique dos Santos Cardoso - RM: 563268
-- Gabriel Gibin Leoncio – RM: 565462
-- Rafael do Nascimento Silva – RM: 566263
-- Rai Augusto Ribeiro – RM: 562870
-- Guilherme Morais de Assis - RM: 564198
-- Lucas Werpp Franco - RM: 556044
