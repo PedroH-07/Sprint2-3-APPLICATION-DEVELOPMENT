@@ -5,42 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="Dashboard GreenSense para monitoramento climático e classificação da vegetação da Mata Atlântica.">
+        content="Dashboard para monitoramento da vegetação ao longo das rodovias com classificação automática e análise climática.">
 
-    <title>GreenSense - Monitoramento da Mata Atlântica</title>
-
+    <title>GreenSense - Monitoramento Rodoviário</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <!-- Cabeçalho global com logo, título e descrição -->
     <header>
         <div class="header-content">
             <h1>🌿 GreenSense</h1>
-            <p>Monitoramento Ambiental da Mata Atlântica</p>
+            <p>Monitoramento da vegetação ao longo das rodovias</p>
         </div>
     </header>
 
     <main>
-        <!-- Seção de informações e controles -->
         <section id="info-section">
             <div class="info-container">
-                <h2>Dashboard de Monitoramento Ambiental</h2>
+                <h2>Dashboard de Monitoramento Rodoviário</h2>
 
                 <p>
-                    Visualize as condições meteorológicas e a classificação
-                    da altura da vegetação em pontos monitorados da
-                    Mata Atlântica.
+                    Analise a altura da vegetação ao longo dos trechos rodoviários,
+                    classifique os pontos por risco e identifique as ações recomendadas.
                 </p>
 
                 <p>
-                    A vegetação é classificada em quatro níveis:
-                    Normal, Atenção, Risco e Crítico.
+                    Regra crítica: vegetação com 35 cm ou mais exige intervenção imediata.
                 </p>
 
-                <!-- Botões para carregar e atualizar os dados -->
                 <button id="loadBtn" class="btn-primary">
-                    Carregar Dados Ambientais
+                    Carregar Trechos Rodoviários
                 </button>
 
                 <button id="refreshBtn" class="btn-secondary" style="display: none;">
@@ -49,35 +43,24 @@
             </div>
         </section>
 
-        <!-- Indicador de carregamento -->
         <div id="loadingIndicator" class="loading" style="display: none;">
-            <p>⏳ Carregando dados ambientais dos pontos monitorados...</p>
+            <p>⏳ Buscando trechos rodoviários e dados climáticos...</p>
         </div>
 
-        <!--
-            Os cards dos pontos serão criados dinamicamente
-            pelo arquivo js/main.js.
-        -->
-        <section id="dashboard-grid" class="dashboard-grid"
-            aria-live="polite">
+        <section id="dashboard-grid" class="dashboard-grid" aria-live="polite">
+            <!-- Cards criados dinamicamente pelo JavaScript -->
         </section>
 
-        <!-- Mensagem de erro -->
-        <div id="errorMessage" class="error-message"
-            role="alert" style="display: none;">
-        </div>
+        <div id="errorMessage" class="error-message" role="alert" style="display: none;"></div>
     </main>
 
-    <!-- Rodapé -->
     <footer>
         <p>
-            &copy; 2026 GreenSense |
-            Proteção da Mata Atlântica |
+            &copy; 2026 GreenSense | Monitoramento rodoviário |
             Dados climáticos via OpenStreetMap e Open-Meteo
         </p>
     </footer>
 
-    <!-- Inclusão do JavaScript principal -->
     <script src="js/main.js"></script>
 </body>
 
