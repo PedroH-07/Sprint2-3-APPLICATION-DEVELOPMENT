@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Dashboard GreenSense para monitoramento climático e classificação da vegetação da Mata Atlântica.">
+
     <title>GreenSense - Monitoramento da Mata Atlântica</title>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -13,39 +17,64 @@
     <header>
         <div class="header-content">
             <h1>🌿 GreenSense</h1>
-            <p>Monitoramento Remoto de Áreas de Vegetação - Mata Atlântica</p>
+            <p>Monitoramento Ambiental da Mata Atlântica</p>
         </div>
     </header>
 
     <main>
-        <!-- Seção de informações e filtros -->
+        <!-- Seção de informações e controles -->
         <section id="info-section">
             <div class="info-container">
-                <h2>Dashboard de Sensoriamento Climático</h2>
-                <p>Visualize as condições meteorológicas em tempo real de 10 pontos monitorados da Mata Atlântica.</p>
-                <!-- Botão para carregar/atualizar dados -->
-                <button id="loadBtn" class="btn-primary">Carregar Dados Climáticos</button>
-                <button id="refreshBtn" class="btn-secondary" style="display: none;">Atualizar Dados</button>
+                <h2>Dashboard de Monitoramento Ambiental</h2>
+
+                <p>
+                    Visualize as condições meteorológicas e a classificação
+                    da altura da vegetação em pontos monitorados da
+                    Mata Atlântica.
+                </p>
+
+                <p>
+                    A vegetação é classificada em quatro níveis:
+                    Normal, Atenção, Risco e Crítico.
+                </p>
+
+                <!-- Botões para carregar e atualizar os dados -->
+                <button id="loadBtn" class="btn-primary">
+                    Carregar Dados Ambientais
+                </button>
+
+                <button id="refreshBtn" class="btn-secondary" style="display: none;">
+                    Atualizar Dados
+                </button>
             </div>
         </section>
 
         <!-- Indicador de carregamento -->
         <div id="loadingIndicator" class="loading" style="display: none;">
-            <p>⏳ Carregando dados dos sensores...</p>
+            <p>⏳ Carregando dados ambientais dos pontos monitorados...</p>
         </div>
 
-        <!-- Grid principal com cards dos pontos monitorados -->
-        <section id="dashboard-grid" class="dashboard-grid">
-            <!-- Cards serão inseridos aqui dinamicamente pelo JavaScript -->
+        <!--
+            Os cards dos pontos serão criados dinamicamente
+            pelo arquivo js/main.js.
+        -->
+        <section id="dashboard-grid" class="dashboard-grid"
+            aria-live="polite">
         </section>
 
-        <!-- Mensagem de erro (se houver) -->
-        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <!-- Mensagem de erro -->
+        <div id="errorMessage" class="error-message"
+            role="alert" style="display: none;">
+        </div>
     </main>
 
     <!-- Rodapé -->
     <footer>
-        <p>&copy; 2026 GreenSense | Proteção da Mata Atlântica | Dados via OpenStreetMap e Open-Meteo</p>
+        <p>
+            &copy; 2026 GreenSense |
+            Proteção da Mata Atlântica |
+            Dados climáticos via OpenStreetMap e Open-Meteo
+        </p>
     </footer>
 
     <!-- Inclusão do JavaScript principal -->
