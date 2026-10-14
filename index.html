@@ -4,60 +4,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Dashboard para monitoramento da vegetação ao longo das rodovias com classificação automática e análise climática.">
 
-    <title>GreenSense - Monitoramento Rodoviário</title>
+    <meta name="description"
+        content="Dashboard para monitoramento e priorização da manutenção da vegetação ao longo das rodovias.">
+
+    <title>GreenSense - Gestão da Vegetação Rodoviária</title>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <header>
         <div class="header-content">
-            <h1>🌿 GreenSense</h1>
-            <p>Monitoramento da vegetação ao longo das rodovias</p>
+            <h1>GreenSense</h1>
+            <p>Gestão da vegetação ao longo das rodovias</p>
         </div>
     </header>
 
     <main>
         <section id="info-section">
             <div class="info-container">
-                <h2>Dashboard de Monitoramento Rodoviário</h2>
+                <h2>Dashboard de Manutenção Rodoviária</h2>
 
                 <p>
-                    Analise a altura da vegetação ao longo dos trechos rodoviários,
-                    classifique os pontos por risco e identifique as ações recomendadas.
+                    Analise os pontos monitorados, identifique a condição da
+                    vegetação e priorize os trechos que precisam de atendimento.
                 </p>
 
-                <p>
-                    Regra crítica: vegetação com 35 cm ou mais exige intervenção imediata.
+                <p class="rule-highlight">
+                    Vegetação com 35 cm ou mais recebe prioridade de intervenção imediata.
                 </p>
 
-                <button id="loadBtn" class="btn-primary">
-                    Carregar Trechos Rodoviários
-                </button>
+                <div class="button-group">
+                    <button id="loadBtn" class="btn-primary" type="button">
+                        Carregar Trechos Rodoviários
+                    </button>
 
-                <button id="refreshBtn" class="btn-secondary" style="display: none;">
-                    Atualizar Dados
-                </button>
+                    <button id="refreshBtn" class="btn-secondary" type="button" style="display: none;">
+                        Atualizar Dados
+                    </button>
+                </div>
             </div>
         </section>
 
-        <div id="loadingIndicator" class="loading" style="display: none;">
-            <p>⏳ Buscando trechos rodoviários e dados climáticos...</p>
-        </div>
+        <section id="data-entry-section" class="data-entry-section">
+            <h2>Adicionar leitura de vegetação</h2>
 
-        <section id="dashboard-grid" class="dashboard-grid" aria-live="polite">
-            <!-- Cards criados dinamicamente pelo JavaScript -->
+            <p>
+                Cadastre um novo ponto informando a altura da vegetação.
+                A localização será obtida pelo Nominatim e o clima será
+                consultado pela Open-Meteo.
+            </p>
+
+            <form id="vegetationForm" class="vegetation-form">
+                <div class="form-field">
+                    <label for="rodoviaInput">Rodovia</label>
+                    <input id="rodoviaInput" name="rodovia" type="text" placeholder="Exemplo: BR-116" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="trechoInput">Trecho ou quilômetro</label>
+                    <input id="trechoInput" name="trecho" type="text" placeholder="Exemplo: Km 72" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="municipioInput">Município e estado</label>
+                    <input id="municipioInput" name="municipio" type="text" placeholder="Exemplo: Teresópolis - RJ"
+                        required>
+                </div>
+
+                <div class="form-field">
+                    <label for="alturaInput">
+                        Altura da vegetação em centímetros
+                    </label>
+                    <input id="alturaInput" name="altura" type="number" min="0" step="1" placeholder="Exemplo: 35"
+                        required>
+                </div>
+
+                <button id="addPointBtn" class="btn-primary" type="submit">
+                    Adicionar ponto
+                </button>
+            </form>
         </section>
 
-        <div id="errorMessage" class="error-message" role="alert" style="display: none;"></div>
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <p>Processando pontos e consultando as APIs...</p>
+        </div>
+
+        <section id="summary-section" class="summary-section" aria-live="polite">
+            <div class="summary-card">
+                <span class="summary-label">Total de pontos</span>
+                <strong id="totalPoints">0</strong>
+            </div>
+
+            <div class="summary-card summary-monitorado">
+                <span class="summary-label">Monitorados</span>
+                <strong id="monitoradoPoints">0</strong>
+            </div>
+
+            <div class="summary-card summary-atencao">
+                <span class="summary-label">Em atenção</span>
+                <strong id="atencaoPoints">0</strong>
+            </div>
+
+            <div class="summary-card summary-programada">
+                <span class="summary-label">Intervenção programada</span>
+                <strong id="programadaPoints">0</strong>
+            </div>
+
+            <div class="summary-card summary-prioritaria">
+                <span class="summary-label">Intervenção prioritária</span>
+                <strong id="prioritariaPoints">0</strong>
+            </div>
+        </section>
+
+        <section class="filter-section">
+            <label for="conditionFilter">Filtrar pontos:</label>
+
+            <select id="conditionFilter">
+                <option value="todas">Todas as condições</option>
+                <option value="monitorado">Monitorado</option>
+                <option value="atencao">Atenção</option>
+                <option value="programada">Intervenção Programada</option>
+                <option value="prioritaria">Intervenção Prioritária</option>
+            </select>
+        </section>
+
+        <section id="dashboard-grid" class="dashboard-grid" aria-live="polite">
+        </section>
+
+        <div id="errorMessage" class="error-message" role="alert" style="display: none;">
+        </div>
     </main>
 
     <footer>
         <p>
-            &copy; 2026 GreenSense | Monitoramento rodoviário |
-            Dados climáticos via OpenStreetMap e Open-Meteo
+            &copy; 2026 GreenSense |
+            Dados de localização via Nominatim/OpenStreetMap |
+            Dados climáticos via Open-Meteo
         </p>
     </footer>
 
