@@ -1,93 +1,79 @@
-// GREENSENSE - Monitoramento da Vegetação ao Longo das Rodovias
-//
-// Nominatim/OpenStreetMap:
-// - Localização dos trechos rodoviários.
-//
-// Open-Meteo:
-// - Dados climáticos atuais das coordenadas encontradas.
-//
-// JavaScript:
-// - Classificação da altura da vegetação.
-// - Atualização dinâmica do dashboard.
+// GreenSense: processamento e priorização da vegetação rodoviária.
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     var loadBtn = document.getElementById('loadBtn');
     var refreshBtn = document.getElementById('refreshBtn');
+    var vegetationForm = document.getElementById('vegetationForm');
+    var conditionFilter = document.getElementById('conditionFilter');
+
     var dashboardGrid = document.getElementById('dashboard-grid');
     var loadingIndicator = document.getElementById('loadingIndicator');
     var errorMessage = document.getElementById('errorMessage');
 
+    var totalPoints = document.getElementById('totalPoints');
+    var monitoradoPoints = document.getElementById('monitoradoPoints');
+    var atencaoPoints = document.getElementById('atencaoPoints');
+    var programadaPoints = document.getElementById('programadaPoints');
+    var prioritariaPoints = document.getElementById('prioritariaPoints');
+
     var monitoredPoints = [];
 
     /*
-     * Faixas de classificação da vegetação próxima às rodovias.
-     *
-     * A regra principal do cenário é:
-     * 35 cm ou mais = intervenção imediata.
-     *
-     * Os valores são armazenados em metros:
-     * 20 cm = 0.20 m
-     * 30 cm = 0.30 m
-     * 35 cm = 0.35 m
+     * As alturas estão em centímetros.
+     * O limite de 35 cm representa intervenção prioritária.
      */
+    var alturasDemonstrativas = [
+        10,
+        20,
+        25,
+        30,
+        32,
+        34,
+        35,
+        40,
+        18,
+        33
+    ];
+
     var faixasVegetacao = [
         {
-            classificacao: 'Normal',
-            acao: 'Manter o monitoramento de rotina.',
-            classeCss: 'vegetacao-normal',
-            emoji: '✅'
+            limite: 20,
+            classificacao: 'Monitorado',
+            chave: 'monitorado',
+            prioridade: 1,
+            acao: 'Manter o acompanhamento de rotina.',
+            classeCss: 'condicao-monitorado',
+            emoji: 'OK'
         },
         {
+            limite: 30,
             classificacao: 'Atenção',
+            chave: 'atencao',
+            prioridade: 2,
             acao: 'Agendar uma inspeção preventiva.',
-            classeCss: 'vegetacao-atencao',
-            emoji: '⚠️'
+            classeCss: 'condicao-atencao',
+            emoji: 'ATENÇÃO'
         },
         {
-            classificacao: 'Risco',
-            acao: 'Programar intervenção antes do limite crítico.',
-            classeCss: 'vegetacao-risco',
-            emoji: '🟠'
+            limite: 35,
+            classificacao: 'Intervenção Programada',
+            chave: 'programada',
+            prioridade: 3,
+            acao: 'Programar manutenção em curto prazo.',
+            classeCss: 'condicao-programada',
+            emoji: 'PROGRAMAR'
         },
         {
-            classificacao: 'Crítico',
-            acao: 'Realizar intervenção imediata na vegetação.',
-            classeCss: 'vegetacao-critico',
-            emoji: '🚨'
+            limite: Infinity,
+            classificacao: 'Intervenção Prioritária',
+            chave: 'prioritaria',
+            prioridade: 4,
+            acao: 'Realizar intervenção imediata.',
+            classeCss: 'condicao-prioritaria',
+            emoji: 'PRIORIDADE'
         }
     ];
 
-    /*
-     * As APIs utilizadas no projeto não fornecem diretamente
-     * a altura da vegetação.
-     *
-     * Estes valores representam leituras demonstrativas em metros
-     * e foram definidos para testar todas as classificações:
-     *
-     * - abaixo de 20 cm: Normal;
-     * - de 20 cm até abaixo de 30 cm: Atenção;
-     * - de 30 cm até abaixo de 35 cm: Risco;
-     * - 35 cm ou mais: Crítico.
-     */
-    var alturasVegetacao = [
-        0.10,
-        0.20,
-        0.25,
-        0.30,
-        0.32,
-        0.34,
-        0.35,
-        0.40,
-        0.18,
-        0.33
-    ];
-
-    /*
-     * Trechos rodoviários usados como consultas ao Nominatim.
-     *
-     * A API continua sendo utilizada para obter a localização,
-     * latitude e longitude de cada trecho.
-     */
     var trechosRodoviarios = [
         {
             rodovia: 'BR-116',
@@ -159,163 +145,147 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshBtn.addEventListener('click', atualizarDados);
     }
 
-    /*
-     * Classifica automaticamente a vegetação conforme sua altura.
-     */
-    function classificarVegetacao(altura) {
-        var alturaNumerica = Number(altura);
-
-        if (!Number.isFinite(alturaNumerica) || alturaNumerica < 0) {
-            return {
-                classificacao: 'Indisponível',
-                acao: 'Verificar a medição da vegetação.',
-                classeCss: 'vegetacao-indisponivel',
-                emoji: '❔'
-            };
-        }
-
-        /*
-         * Estruturas condicionais utilizadas para determinar
-         * a situação de cada trecho rodoviário.
-         */
-        if (alturaNumerica < 0.20) {
-            return faixasVegetacao[0];
-        }
-
-        if (alturaNumerica < 0.30) {
-            return faixasVegetacao[1];
-        }
-
-        if (alturaNumerica < 0.35) {
-            return faixasVegetacao[2];
-        }
-
-        return faixasVegetacao[3];
+    if (vegetationForm) {
+        vegetationForm.addEventListener('submit', adicionarPonto);
     }
 
-    /*
-     * Retorna uma altura demonstrativa para cada ponto.
-     */
-    function obterAlturaVegetacao(indice) {
-        return alturasVegetacao[
-            indice % alturasVegetacao.length
-        ];
+    if (conditionFilter) {
+        conditionFilter.addEventListener('change', renderizarDashboard);
     }
 
-    /*
-     * Inicia o carregamento dos trechos rodoviários.
-     */
     function iniciarMonitoramento() {
         mostrarCarregamento(true);
-        limparErros();
-
+        limparErro();
         monitoredPoints = [];
 
-        buscarTrechosRodoviarios(function(pontos) {
+        buscarTrechosRodoviarios(function (pontos) {
             if (pontos.length === 0) {
                 mostrarErro(
-                    'Nenhum trecho rodoviário foi localizado pela API.'
+                    'Nenhum trecho rodoviário foi localizado.'
                 );
-
                 mostrarCarregamento(false);
                 return;
             }
 
-            obterDadosDosPontos(pontos, 0);
+            carregarClimaDosPontos(pontos, 0);
         });
     }
 
-    /*
-     * Consulta o Nominatim/OpenStreetMap para localizar
-     * os trechos rodoviários.
-     */
     function buscarTrechosRodoviarios(callback) {
         var pontosEncontrados = [];
-        var indiceBusca = 0;
+        var indice = 0;
 
         function executarBusca() {
-            if (indiceBusca >= trechosRodoviarios.length) {
+            if (indice >= trechosRodoviarios.length) {
                 callback(pontosEncontrados);
                 return;
             }
 
-            var trechoAtual = trechosRodoviarios[indiceBusca];
+            var trecho = trechosRodoviarios[indice];
 
-            var url =
-                'https://nominatim.openstreetmap.org/search?' +
-                'q=' +
-                encodeURIComponent(trechoAtual.busca) +
-                '&format=json' +
-                '&limit=1' +
-                '&addressdetails=1';
-
-            fetch(url)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error(
-                            'Erro HTTP na API de localização: ' +
-                            response.status
-                        );
-                    }
-
-                    return response.json();
-                })
-                .then(function(dados) {
-                    if (
-                        dados.length > 0 &&
-                        dados[0].lat &&
-                        dados[0].lon
-                    ) {
+            buscarLocalizacao(
+                trecho.busca,
+                function (localizacao) {
+                    if (localizacao) {
                         pontosEncontrados.push({
-                            rodovia: trechoAtual.rodovia,
-                            trecho: trechoAtual.trecho,
-                            municipio: trechoAtual.municipio,
-                            nomeApi: dados[0].display_name,
-                            lat: parseFloat(dados[0].lat),
-                            lon: parseFloat(dados[0].lon),
-                            alturaVegetacao:
-                                obterAlturaVegetacao(
-                                    pontosEncontrados.length
-                                )
+                            rodovia: trecho.rodovia,
+                            trecho: trecho.trecho,
+                            municipio: trecho.municipio,
+                            nomeApi: localizacao.nome,
+                            lat: localizacao.lat,
+                            lon: localizacao.lon,
+                            alturaCm: alturasDemonstrativas[
+                                pontosEncontrados.length %
+                                alturasDemonstrativas.length
+                            ]
                         });
                     }
 
-                    indiceBusca++;
-
-                    /*
-                     * Intervalo entre chamadas ao Nominatim para
-                     * evitar muitas requisições consecutivas.
-                     */
+                    indice++;
                     setTimeout(executarBusca, 1000);
-                })
-                .catch(function(erro) {
-                    console.warn(
-                        'Falha ao localizar o trecho ' +
-                        trechoAtual.busca +
-                        ':',
-                        erro
-                    );
-
-                    indiceBusca++;
-
-                    setTimeout(executarBusca, 1000);
-                });
+                }
+            );
         }
 
         executarBusca();
     }
 
-    /*
-     * Consulta a API Open-Meteo para obter os dados climáticos
-     * atuais das coordenadas retornadas pelo Nominatim.
-     */
+    function buscarLocalizacao(consulta, callback) {
+        var url =
+            'https://nominatim.openstreetmap.org/search?' +
+            'q=' + encodeURIComponent(consulta) +
+            '&format=json' +
+            '&limit=1' +
+            '&addressdetails=1';
+
+        fetch(url)
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error(
+                        'Erro na localização: ' + response.status
+                    );
+                }
+
+                return response.json();
+            })
+            .then(function (dados) {
+                if (
+                    dados.length === 0 ||
+                    !dados[0].lat ||
+                    !dados[0].lon
+                ) {
+                    callback(null);
+                    return;
+                }
+
+                callback({
+                    nome: dados[0].display_name,
+                    lat: parseFloat(dados[0].lat),
+                    lon: parseFloat(dados[0].lon)
+                });
+            })
+            .catch(function (erro) {
+                console.warn(
+                    'Não foi possível localizar "' +
+                    consulta +
+                    '":',
+                    erro
+                );
+
+                callback(null);
+            });
+    }
+
+    function carregarClimaDosPontos(pontos, indice) {
+        if (indice >= pontos.length) {
+            finalizarCarregamento();
+            renderizarDashboard();
+            return;
+        }
+
+        var ponto = pontos[indice];
+
+        obterDadosClimaticos(
+            ponto.lat,
+            ponto.lon,
+            function (clima) {
+                if (clima) {
+                    ponto.clima = clima;
+                    monitoredPoints.push(ponto);
+                }
+
+                setTimeout(function () {
+                    carregarClimaDosPontos(pontos, indice + 1);
+                }, 500);
+            }
+        );
+    }
+
     function obterDadosClimaticos(latitude, longitude, callback) {
         var url =
             'https://api.open-meteo.com/v1/forecast?' +
-            'latitude=' +
-            latitude +
-            '&longitude=' +
-            longitude +
+            'latitude=' + latitude +
+            '&longitude=' + longitude +
             '&current=' +
             'temperature_2m,' +
             'relative_humidity_2m,' +
@@ -325,36 +295,33 @@ document.addEventListener('DOMContentLoaded', function() {
             '&timezone=auto';
 
         fetch(url)
-            .then(function(response) {
+            .then(function (response) {
                 if (!response.ok) {
                     throw new Error(
-                        'Erro HTTP na API climática: ' +
-                        response.status
+                        'Erro climático: ' + response.status
                     );
                 }
 
                 return response.json();
             })
-            .then(function(dados) {
+            .then(function (dados) {
                 if (!dados.current) {
                     throw new Error(
-                        'A API não retornou dados climáticos atuais.'
+                        'A API não retornou dados atuais.'
                     );
                 }
 
-                var clima = {
+                callback({
                     temperatura: dados.current.temperature_2m,
                     umidade: dados.current.relative_humidity_2m,
                     precipitacao: dados.current.precipitation,
                     velocidadeVento: dados.current.wind_speed_10m,
                     indiceUV: dados.current.uv_index
-                };
-
-                callback(clima);
+                });
             })
-            .catch(function(erro) {
+            .catch(function (erro) {
                 mostrarErro(
-                    'Erro ao obter dados climáticos de um trecho: ' +
+                    'Não foi possível obter o clima de um ponto: ' +
                     erro.message
                 );
 
@@ -362,306 +329,397 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    /*
-     * Obtém os dados climáticos de todos os pontos,
-     * mantendo o processamento sequencial.
-     */
-    function obterDadosDosPontos(pontos, indiceAtual) {
-        if (indiceAtual >= pontos.length) {
-            exibirDashboard(monitoredPoints);
-            finalizarCarregamento();
+    function adicionarPonto(event) {
+        event.preventDefault();
+
+        var rodovia = document.getElementById(
+            'rodoviaInput'
+        ).value.trim();
+
+        var trecho = document.getElementById(
+            'trechoInput'
+        ).value.trim();
+
+        var municipio = document.getElementById(
+            'municipioInput'
+        ).value.trim();
+
+        var alturaCm = Number(
+            document.getElementById('alturaInput').value
+        );
+
+        if (
+            !rodovia ||
+            !trecho ||
+            !municipio ||
+            !Number.isFinite(alturaCm) ||
+            alturaCm < 0
+        ) {
+            mostrarErro(
+                'Preencha todos os campos com valores válidos.'
+            );
             return;
         }
 
-        var pontoAtual = pontos[indiceAtual];
+        mostrarCarregamento(true);
+        limparErro();
 
-        obterDadosClimaticos(
-            pontoAtual.lat,
-            pontoAtual.lon,
-            function(clima) {
-                if (clima !== null) {
-                    monitoredPoints.push({
-                        rodovia: pontoAtual.rodovia,
-                        trecho: pontoAtual.trecho,
-                        municipio: pontoAtual.municipio,
-                        nomeApi: pontoAtual.nomeApi,
-                        lat: pontoAtual.lat,
-                        lon: pontoAtual.lon,
-                        alturaVegetacao:
-                            pontoAtual.alturaVegetacao,
-                        clima: clima
-                    });
+        var consulta = rodovia + ', ' + municipio;
+
+        buscarLocalizacao(
+            consulta,
+            function (localizacao) {
+                if (!localizacao) {
+                    mostrarErro(
+                        'O trecho informado não foi localizado pelo Nominatim.'
+                    );
+                    mostrarCarregamento(false);
+                    return;
                 }
 
-                setTimeout(function() {
-                    obterDadosDosPontos(
-                        pontos,
-                        indiceAtual + 1
-                    );
-                }, 500);
+                obterDadosClimaticos(
+                    localizacao.lat,
+                    localizacao.lon,
+                    function (clima) {
+                        if (!clima) {
+                            mostrarCarregamento(false);
+                            return;
+                        }
+
+                        monitoredPoints.push({
+                            rodovia: rodovia,
+                            trecho: trecho,
+                            municipio: municipio,
+                            nomeApi: localizacao.nome,
+                            lat: localizacao.lat,
+                            lon: localizacao.lon,
+                            alturaCm: alturaCm,
+                            clima: clima
+                        });
+
+                        vegetationForm.reset();
+                        finalizarCarregamento();
+                        renderizarDashboard();
+                    }
+                );
             }
         );
     }
 
-    /*
-     * Percorre os dados utilizando forEach()
-     * e atualiza o dashboard dinamicamente.
-     */
-    function exibirDashboard(pontos) {
+    function processarPonto(ponto) {
+        var resultado = classificarVegetacao(
+            ponto.alturaCm
+        );
+
+        return {
+            rodovia: ponto.rodovia,
+            trecho: ponto.trecho,
+            municipio: ponto.municipio,
+            nomeApi: ponto.nomeApi,
+            lat: ponto.lat,
+            lon: ponto.lon,
+            alturaCm: ponto.alturaCm,
+            clima: ponto.clima,
+            classificacao: resultado.classificacao,
+            chave: resultado.chave,
+            prioridade: resultado.prioridade,
+            acao: resultado.acao,
+            classeCss: resultado.classeCss,
+            emoji: resultado.emoji
+        };
+    }
+
+    function classificarVegetacao(alturaCm) {
+        if (!Number.isFinite(alturaCm) || alturaCm < 0) {
+            return {
+                classificacao: 'Indisponível',
+                chave: 'indisponivel',
+                prioridade: 0,
+                acao: 'Verificar a medição da vegetação.',
+                classeCss: 'condicao-indisponivel',
+                emoji: 'INDISPONÍVEL'
+            };
+        }
+
+        if (alturaCm < 20) {
+            return faixasVegetacao[0];
+        }
+
+        if (alturaCm < 30) {
+            return faixasVegetacao[1];
+        }
+
+        if (alturaCm < 35) {
+            return faixasVegetacao[2];
+        }
+
+        return faixasVegetacao[3];
+    }
+
+    function renderizarDashboard() {
         if (!dashboardGrid) {
             return;
         }
 
+        var pontosProcessados = monitoredPoints.map(
+            processarPonto
+        );
+
+        pontosProcessados.sort(function (a, b) {
+            return b.prioridade - a.prioridade;
+        });
+
+        atualizarResumo(pontosProcessados);
+
+        var filtro = conditionFilter
+            ? conditionFilter.value
+            : 'todas';
+
+        var pontosFiltrados = pontosProcessados.filter(
+            function (ponto) {
+                return filtro === 'todas' ||
+                    ponto.chave === filtro;
+            }
+        );
+
         dashboardGrid.innerHTML = '';
 
-        if (pontos.length === 0) {
-            mostrarErro(
-                'Nenhum dado foi carregado para os trechos rodoviários.'
-            );
-
+        if (pontosFiltrados.length === 0) {
+            dashboardGrid.innerHTML =
+                '<div class="empty-state">' +
+                'Nenhum ponto corresponde ao filtro selecionado.' +
+                '</div>';
             return;
         }
 
-        pontos.forEach(function(ponto) {
-            var card = criarCard(ponto);
-            dashboardGrid.appendChild(card);
+        pontosFiltrados.forEach(function (ponto) {
+            dashboardGrid.appendChild(criarCard(ponto));
         });
     }
 
-    /*
-     * Cria dinamicamente o card de um trecho rodoviário.
-     */
+    function atualizarResumo(pontos) {
+        var contadores = {
+            monitorado: 0,
+            atencao: 0,
+            programada: 0,
+            prioritaria: 0
+        };
+
+        pontos.forEach(function (ponto) {
+            if (contadores[ponto.chave] !== undefined) {
+                contadores[ponto.chave]++;
+            }
+        });
+
+        totalPoints.textContent = pontos.length;
+        monitoradoPoints.textContent = contadores.monitorado;
+        atencaoPoints.textContent = contadores.atencao;
+        programadaPoints.textContent = contadores.programada;
+        prioritariaPoints.textContent = contadores.prioritaria;
+    }
+
     function criarCard(ponto) {
-        var card = document.createElement('div');
+        var card = document.createElement('article');
+
         card.className = 'card';
 
-        var classificacaoVegetacao =
-            classificarVegetacao(
-                ponto.alturaVegetacao
-            );
+        if (ponto.prioridade === 4) {
+            card.classList.add('card-prioridade-alta');
+        }
 
-        var riscoClimatico =
-            calcularRisco(ponto.clima);
+        var riscoClimatico = calcularRisco(ponto.clima);
 
-        var alturaEmCentimetros =
-            ponto.alturaVegetacao * 100;
+        var avisoPrioridade = ponto.prioridade === 4
+            ? '<span class="priority-badge priority-critical">' +
+            'ATENDER PRIMEIRO</span>'
+            : '';
 
         card.innerHTML =
             '<div class="card-title">' +
-                '🛣️ ' +
-                ponto.rodovia +
+            escapeHTML(ponto.rodovia) +
             '</div>' +
 
             '<div class="card-coordinates">' +
-                '<strong>Trecho:</strong> ' +
-                ponto.trecho +
-                '<br>' +
-                '<strong>Município:</strong> ' +
-                ponto.municipio +
-                '<br>' +
-                'Latitude: ' +
-                ponto.lat.toFixed(4) +
-                ' | Longitude: ' +
-                ponto.lon.toFixed(4) +
+            '<strong>Trecho:</strong> ' +
+            escapeHTML(ponto.trecho) +
+            '<br>' +
+            '<strong>Município:</strong> ' +
+            escapeHTML(ponto.municipio) +
+            '<br>' +
+            'Latitude: ' +
+            ponto.lat.toFixed(4) +
+            ' | Longitude: ' +
+            ponto.lon.toFixed(4) +
             '</div>' +
 
-            '<div class="vegetation-status ' +
-                classificacaoVegetacao.classeCss +
+            '<div class="condition-status ' +
+            ponto.classeCss +
             '">' +
-                '<strong>' +
-                    classificacaoVegetacao.emoji +
-                    ' Vegetação: ' +
-                    classificacaoVegetacao.classificacao +
-                '</strong>' +
+            '<strong>' +
+            ponto.emoji +
+            ' ' +
+            escapeHTML(ponto.classificacao) +
+            '</strong>' +
 
-                '<span>' +
-                    '<strong>Altura:</strong> ' +
-                    alturaEmCentimetros.toFixed(0) +
-                    ' cm' +
-                '</span>' +
+            '<span>' +
+            '<strong>Altura:</strong> ' +
+            ponto.alturaCm.toFixed(0) +
+            ' cm' +
+            '</span>' +
 
-                '<span>' +
-                    '<strong>Ação recomendada:</strong> ' +
-                    classificacaoVegetacao.acao +
-                '</span>' +
+            '<span>' +
+            '<strong>Prioridade:</strong> ' +
+            ponto.prioridade +
+            '</span>' +
+
+            '<span>' +
+            '<strong>Ação:</strong> ' +
+            escapeHTML(ponto.acao) +
+            '</span>' +
+
+            avisoPrioridade +
             '</div>' +
 
             '<div class="weather-data">' +
-                criarItemClimatico(
-                    '🌡️ Temperatura',
-                    ponto.clima.temperatura.toFixed(1) +
-                    '°C'
-                ) +
+            criarItemClimatico(
+                'Temperatura',
+                ponto.clima.temperatura.toFixed(1) +
+                ' °C'
+            ) +
 
-                criarItemClimatico(
-                    '💧 Umidade',
-                    ponto.clima.umidade +
-                    '%'
-                ) +
+            criarItemClimatico(
+                'Umidade',
+                ponto.clima.umidade +
+                '%'
+            ) +
 
-                criarItemClimatico(
-                    '🌧️ Precipitação',
-                    ponto.clima.precipitacao.toFixed(2) +
-                    ' mm'
-                ) +
+            criarItemClimatico(
+                'Precipitação',
+                ponto.clima.precipitacao.toFixed(2) +
+                ' mm'
+            ) +
 
-                criarItemClimatico(
-                    '💨 Velocidade do Vento',
-                    ponto.clima.velocidadeVento.toFixed(1) +
-                    ' km/h'
-                ) +
+            criarItemClimatico(
+                'Velocidade do vento',
+                ponto.clima.velocidadeVento.toFixed(1) +
+                ' km/h'
+            ) +
 
-                criarItemClimatico(
-                    '☀️ Índice UV',
-                    ponto.clima.indiceUV.toFixed(1)
-                ) +
+            criarItemClimatico(
+                'Índice UV',
+                ponto.clima.indiceUV.toFixed(1)
+            ) +
             '</div>' +
 
             '<div class="risk-status ' +
-                riscoClimatico.classe +
+            riscoClimatico.classe +
             '">' +
-                riscoClimatico.emoji +
-                ' ' +
-                riscoClimatico.texto +
+            riscoClimatico.texto +
             '</div>';
 
         return card;
     }
 
-    /*
-     * Cria um item visual para os dados climáticos.
-     */
     function criarItemClimatico(rotulo, valor) {
         return (
             '<div class="weather-item">' +
-                '<span class="weather-label">' +
-                    rotulo +
-                '</span>' +
-                '<span class="weather-value">' +
-                    valor +
-                '</span>' +
+            '<span class="weather-label">' +
+            escapeHTML(rotulo) +
+            '</span>' +
+            '<span class="weather-value">' +
+            escapeHTML(valor) +
+            '</span>' +
             '</div>'
         );
     }
 
-    /*
-     * Calcula o risco climático do trecho.
-     * Essa regra é independente da classificação da vegetação.
-     */
     function calcularRisco(clima) {
-        var riscoPontos = 0;
+        var pontos = 0;
 
         if (clima.temperatura > 30) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.temperatura > 35) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.umidade < 40) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.umidade < 20) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.velocidadeVento > 20) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.velocidadeVento > 30) {
-            riscoPontos += 2;
+            pontos += 2;
         }
 
         if (clima.precipitacao < 1) {
-            riscoPontos += 1;
+            pontos += 1;
         }
 
-        if (riscoPontos <= 3) {
+        if (pontos <= 3) {
             return {
                 classe: 'risk-low',
-                texto: 'Risco Climático Baixo',
-                emoji: '✅'
+                texto: 'Risco climático baixo'
             };
         }
 
-        if (riscoPontos <= 6) {
+        if (pontos <= 6) {
             return {
                 classe: 'risk-medium',
-                texto: 'Risco Climático Moderado',
-                emoji: '⚠️'
+                texto: 'Risco climático moderado'
             };
         }
 
         return {
             classe: 'risk-high',
-            texto: 'Risco Climático Alto',
-            emoji: '🚨'
+            texto: 'Risco climático alto'
         };
     }
 
-    /*
-     * Atualiza os dados climáticos mantendo os mesmos
-     * trechos e as mesmas alturas de vegetação.
-     */
     function atualizarDados() {
-        mostrarCarregamento(true);
-        limparErros();
-
-        var pontosParaAtualizar =
-            monitoredPoints.slice();
-
-        if (pontosParaAtualizar.length === 0) {
-            mostrarCarregamento(false);
+        if (monitoredPoints.length === 0) {
             mostrarErro(
-                'Carregue os dados antes de tentar atualizar.'
+                'Carregue ou cadastre pelo menos um ponto antes de atualizar.'
             );
             return;
         }
 
-        monitoredPoints = [];
+        mostrarCarregamento(true);
+        limparErro();
 
-        atualizarPontosSequencial(
-            pontosParaAtualizar,
+        atualizarClimaDosPontos(
+            monitoredPoints.slice(),
             0
         );
     }
 
-    /*
-     * Atualiza os dados climáticos de cada trecho
-     * sem consultar novamente o Nominatim.
-     */
-    function atualizarPontosSequencial(pontos, indice) {
+    function atualizarClimaDosPontos(pontos, indice) {
         if (indice >= pontos.length) {
-            exibirDashboard(monitoredPoints);
             finalizarCarregamento();
+            renderizarDashboard();
             return;
         }
 
-        var pontoAtual = pontos[indice];
+        var ponto = pontos[indice];
 
         obterDadosClimaticos(
-            pontoAtual.lat,
-            pontoAtual.lon,
-            function(novoClima) {
-                if (novoClima !== null) {
-                    monitoredPoints.push({
-                        rodovia: pontoAtual.rodovia,
-                        trecho: pontoAtual.trecho,
-                        municipio: pontoAtual.municipio,
-                        nomeApi: pontoAtual.nomeApi,
-                        lat: pontoAtual.lat,
-                        lon: pontoAtual.lon,
-                        alturaVegetacao:
-                            pontoAtual.alturaVegetacao,
-                        clima: novoClima
-                    });
+            ponto.lat,
+            ponto.lon,
+            function (clima) {
+                if (clima) {
+                    ponto.clima = clima;
                 }
 
-                setTimeout(function() {
-                    atualizarPontosSequencial(
+                setTimeout(function () {
+                    atualizarClimaDosPontos(
                         pontos,
                         indice + 1
                     );
@@ -670,9 +728,36 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     }
 
-    /*
-     * Finaliza o estado visual de carregamento.
-     */
+    function escapeHTML(valor) {
+        return String(valor)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function mostrarCarregamento(visivel) {
+        loadingIndicator.style.display =
+            visivel ? 'block' : 'none';
+
+        if (loadBtn) {
+            loadBtn.disabled = visivel;
+        }
+
+        if (refreshBtn) {
+            refreshBtn.disabled = visivel;
+        }
+
+        var addPointBtn = document.getElementById(
+            'addPointBtn'
+        );
+
+        if (addPointBtn) {
+            addPointBtn.disabled = visivel;
+        }
+    }
+
     function finalizarCarregamento() {
         mostrarCarregamento(false);
 
@@ -685,24 +770,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function mostrarCarregamento(visivel) {
-        if (loadingIndicator) {
-            loadingIndicator.style.display =
-                visivel ? 'block' : 'none';
-        }
-    }
-
     function mostrarErro(mensagem) {
-        if (errorMessage) {
-            errorMessage.textContent = mensagem;
-            errorMessage.style.display = 'block';
-        }
+        errorMessage.textContent = mensagem;
+        errorMessage.style.display = 'block';
     }
 
-    function limparErros() {
-        if (errorMessage) {
-            errorMessage.textContent = '';
-            errorMessage.style.display = 'none';
-        }
+    function limparErro() {
+        errorMessage.textContent = '';
+        errorMessage.style.display = 'none';
     }
 });
