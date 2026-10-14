@@ -1,4 +1,3 @@
-/* Paleta de cores para tema de vegetação e natureza */
 :root {
     --forest-green: #1b5e20;
     --leaf-green: #2e7d32;
@@ -6,13 +5,14 @@
     --sky-blue: #1e88e5;
     --cloud-white: #f5f5f5;
     --text-dark: #212121;
-    --text-light: #757575;
-    --accent-orange: #ff6f00;
+    --text-light: #616161;
+    --accent-orange: #ef6c00;
     --danger-red: #c62828;
-    --success-green: #00c853;
+    --warning-yellow: #f9a825;
+    --border-color: #d7e3d8;
+    --white: #ffffff;
 }
 
-/* Reset universal e configuração padrão */
 * {
     margin: 0;
     padding: 0;
@@ -20,115 +20,233 @@
 }
 
 body {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-    color: var(--text-dark);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    color: var(--text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Cabeçalho */
 header {
-    background: linear-gradient(135deg, var(--forest-green) 0%, var(--leaf-green) 100%);
-    color: white;
     padding: 2rem 1rem;
+    color: var(--white);
     text-align: center;
+    background: linear-gradient(135deg,
+            var(--forest-green) 0%,
+            var(--leaf-green) 100%);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 header h1 {
-    font-size: 2.5rem;
     margin-bottom: 0.5rem;
+    font-size: 2.5rem;
     letter-spacing: 1px;
 }
 
 header p {
     font-size: 1.1rem;
-    opacity: 0.9;
+    opacity: 0.95;
 }
 
-/* Conteúdo principal */
 main {
     flex: 1;
-    padding: 2rem 1rem;
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    width: 100%;
+    padding: 2rem 1rem;
 }
 
-/* Seção de informações */
-#info-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
+#info-section,
+.data-entry-section {
     margin-bottom: 2rem;
+    padding: 2rem;
+    background: var(--white);
+    border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-#info-section h2 {
-    color: var(--forest-green);
+#info-section h2,
+.data-entry-section h2 {
     margin-bottom: 1rem;
+    color: var(--forest-green);
     font-size: 1.8rem;
 }
 
-#info-section p {
+#info-section p,
+.data-entry-section p {
+    margin-bottom: 1.2rem;
     color: var(--text-light);
-    margin-bottom: 1.5rem;
     line-height: 1.6;
 }
 
-/* Botões */
-.btn-primary, .btn-secondary {
-    padding: 0.8rem 1.6rem;
+.rule-highlight {
+    padding: 0.8rem 1rem;
+    color: var(--danger-red) !important;
+    font-weight: 700;
+    background: #ffebee;
+    border-left: 4px solid var(--danger-red);
+    border-radius: 6px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 0.8rem 1.4rem;
     border: none;
     border-radius: 8px;
+    color: var(--white);
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-right: 1rem;
+    transition: 0.3s ease;
 }
 
 .btn-primary {
     background: var(--light-green);
-    color: white;
     box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
 .btn-primary:hover {
     background: var(--leaf-green);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
 
 .btn-secondary {
     background: var(--sky-blue);
-    color: white;
     box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
 }
 
 .btn-secondary:hover {
     background: #1565c0;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
 }
 
-/* Indicador de carregamento */
+.vegetation-form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    align-items: end;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-field label,
+.filter-section label {
+    color: var(--text-dark);
+    font-weight: 700;
+}
+
+.form-field input,
+.filter-section select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    color: var(--text-dark);
+    background: var(--white);
+    font-size: 1rem;
+}
+
+.form-field input:focus,
+.filter-section select:focus {
+    outline: 2px solid rgba(30, 136, 229, 0.35);
+    border-color: var(--sky-blue);
+}
+
+.vegetation-form .btn-primary {
+    min-height: 44px;
+}
+
 .loading {
-    text-align: center;
     padding: 2rem;
-    font-size: 1.2rem;
     color: var(--forest-green);
+    font-size: 1.2rem;
+    text-align: center;
     animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
-/* Grid do dashboard */
+.summary-section {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 10px;
+    border-top: 5px solid var(--leaf-green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.summary-card strong {
+    color: var(--text-dark);
+    font-size: 1.8rem;
+}
+
+.summary-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.summary-monitorado {
+    border-top-color: var(--leaf-green);
+}
+
+.summary-atencao {
+    border-top-color: var(--warning-yellow);
+}
+
+.summary-programada {
+    border-top-color: var(--accent-orange);
+}
+
+.summary-prioritaria {
+    border-top-color: var(--danger-red);
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-section select {
+    max-width: 280px;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -136,37 +254,112 @@ main {
     margin-bottom: 2rem;
 }
 
-/* Card */
 .card {
-    background: white;
-    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    background: var(--white);
     border-left: 6px solid var(--light-green);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+.card-prioridade-alta {
+    border: 3px solid var(--danger-red);
+    border-left-width: 8px;
+    box-shadow: 0 0 14px rgba(198, 40, 40, 0.3);
+}
+
 .card-title {
-    font-size: 1.3rem;
-    color: var(--forest-green);
     margin-bottom: 0.5rem;
-    font-weight: bold;
+    color: var(--forest-green);
+    font-size: 1.3rem;
+    font-weight: 700;
 }
 
 .card-coordinates {
-    font-size: 0.9rem;
-    color: var(--text-light);
     margin-bottom: 1rem;
+    color: var(--text-light);
     font-family: monospace;
+    font-size: 0.9rem;
     line-height: 1.6;
 }
 
-/* Dados climáticos */
+.condition-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    border-left: 6px solid;
+    border-radius: 8px;
+    line-height: 1.4;
+}
+
+.condition-status strong {
+    font-size: 1.05rem;
+}
+
+.condicao-monitorado {
+    color: #1b5e20;
+    background: #e8f5e9;
+    border-left-color: #2e7d32;
+}
+
+.condicao-atencao {
+    color: #8d6e00;
+    background: #fff8e1;
+    border-left-color: #f9a825;
+}
+
+.condicao-programada {
+    color: #e65100;
+    background: #fff3e0;
+    border-left-color: #ef6c00;
+}
+
+.condicao-prioritaria {
+    color: #b71c1c;
+    background: #ffebee;
+    border-left-color: #c62828;
+}
+
+.condicao-indisponivel {
+    color: #37474f;
+    background: #eceff1;
+    border-left-color: #546e7a;
+}
+
+.priority-badge {
+    display: inline-block;
+    width: fit-content;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    color: var(--white);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.priority-low {
+    background: var(--leaf-green);
+}
+
+.priority-medium {
+    background: var(--warning-yellow);
+}
+
+.priority-high {
+    background: var(--accent-orange);
+}
+
+.priority-critical {
+    background: var(--danger-red);
+}
+
 .weather-data {
     display: flex;
     flex-direction: column;
@@ -175,154 +368,136 @@ main {
 
 .weather-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     padding: 0.8rem;
     background: var(--cloud-white);
-    border-radius: 8px;
     border-left: 4px solid var(--sky-blue);
+    border-radius: 8px;
 }
 
 .weather-label {
-    font-weight: 600;
     color: var(--text-dark);
+    font-weight: 600;
 }
 
 .weather-value {
-    font-size: 1.1rem;
     color: var(--leaf-green);
-    font-weight: bold;
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
-/* Status da vegetação */
-.vegetation-status {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    margin: 1rem 0;
-    padding: 1rem;
-    border-radius: 8px;
-    border-left: 6px solid;
-    line-height: 1.4;
-}
-
-.vegetation-status strong {
-    font-size: 1.05rem;
-}
-
-.vegetacao-normal {
-    background: #e8f5e9;
-    color: #1b5e20;
-    border-left-color: #2e7d32;
-}
-
-.vegetacao-atencao {
-    background: #fff8e1;
-    color: #8d6e00;
-    border-left-color: #f9a825;
-}
-
-.vegetacao-risco {
-    background: #fff3e0;
-    color: #e65100;
-    border-left-color: #ef6c00;
-}
-
-.vegetacao-critico {
-    background: #ffebee;
-    color: #b71c1c;
-    border-left-color: #c62828;
-}
-
-.vegetacao-indisponivel {
-    background: #eceff1;
-    color: #37474f;
-    border-left-color: #546e7a;
-}
-
-/* Status de risco climático */
 .risk-status {
     margin-top: 1rem;
     padding: 0.8rem;
     border-radius: 8px;
-    text-align: center;
-    font-weight: bold;
     font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
 }
 
 .risk-low {
-    background: #c8e6c9;
     color: var(--forest-green);
+    background: #c8e6c9;
 }
 
 .risk-medium {
-    background: #ffe0b2;
     color: var(--accent-orange);
+    background: #ffe0b2;
 }
 
 .risk-high {
-    background: #ffcdd2;
     color: var(--danger-red);
+    background: #ffcdd2;
 }
 
-/* Mensagem de erro */
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    color: var(--text-light);
+    background: var(--white);
+    border-radius: 10px;
+    text-align: center;
+}
+
 .error-message {
-    background: #ffcdd2;
-    color: var(--danger-red);
-    padding: 1rem;
-    border-radius: 8px;
     margin-bottom: 2rem;
+    padding: 1rem;
+    color: var(--danger-red);
+    background: #ffcdd2;
     border-left: 4px solid var(--danger-red);
+    border-radius: 8px;
     font-weight: 500;
 }
 
-/* Rodapé */
 footer {
-    background: var(--forest-green);
-    color: white;
-    text-align: center;
-    padding: 1.5rem;
     margin-top: 2rem;
+    padding: 1.5rem;
+    color: var(--white);
+    background: var(--forest-green);
     font-size: 0.95rem;
+    text-align: center;
 }
 
-/* Responsividade */
+@media (max-width: 1000px) {
+    .vegetation-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-section {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    main {
+        padding: 1rem;
+    }
+
     header h1 {
         font-size: 2rem;
     }
 
-    .dashboard-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    main {
-        padding: 1rem;
+    .summary-section {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
     header h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 
     header p {
         font-size: 0.95rem;
     }
 
-    .dashboard-grid {
+    .vegetation-form,
+    .summary-section {
         grid-template-columns: 1fr;
     }
 
-    .btn-primary, .btn-secondary {
-        display: block;
-        width: 100%;
-        margin-right: 0;
-        margin-bottom: 0.5rem;
+    .filter-section {
+        align-items: stretch;
+        flex-direction: column;
     }
 
-    #info-section {
-        padding: 1rem;
+    .filter-section select {
+        max-width: none;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+
+    .weather-item {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
